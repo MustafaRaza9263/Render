@@ -1,0 +1,29 @@
+html,body{margin:0;height:100%;overflow:hidden;background:#0d0f12;font-family:"Helvetica Neue",Arial,sans-serif;color:#fff}
+#app{position:fixed;inset:0}
+#app canvas{display:block}
+#loader{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 40%,#2a2621,#0d0c0b);z-index:20;transition:opacity .8s}
+#loader.done{opacity:0;pointer-events:none}
+.brand{display:flex;flex-direction:column;align-items:center;margin-bottom:28px}
+.brand .seven{font:200 120px/1 Georgia,serif;color:#d8b86a;text-shadow:0 0 30px rgba(216,184,106,.35)}
+.brand .word{font:400 22px Georgia,serif;letter-spacing:.35em;color:#eee;margin-top:-18px}
+.bar{width:280px;height:2px;background:rgba(255,255,255,.12)}
+#bar-fill{height:100%;width:0;background:#d8b86a;transition:width .3s}
+#load-msg{margin-top:12px;font-size:12px;letter-spacing:.12em;color:#bbb;text-transform:uppercase}
+#ui{position:fixed;left:16px;top:16px;display:flex;flex-direction:column;gap:8px;z-index:10;user-select:none}
+#ui.hidden{display:none}
+#ui .title{font:400 15px Georgia,serif;letter-spacing:.18em;background:rgba(10,10,12,.55);backdrop-filter:blur(6px);padding:9px 14px;border-radius:10px}
+#ui .title .g{color:#d8b86a;font-size:22px;margin-right:4px}
+#ui .title small{display:block;font:11px Arial;letter-spacing:.08em;color:#bbb;margin-top:3px}
+#ui .group{display:flex;flex-wrap:wrap;gap:4px;background:rgba(10,10,12,.5);backdrop-filter:blur(6px);padding:5px;border-radius:10px;max-width:520px}
+#ui button{background:transparent;border:1px solid rgba(255,255,255,.18);color:#eee;padding:6px 11px;border-radius:7px;font-size:12px;cursor:pointer}
+#ui button:hover{border-color:#d8b86a}
+#ui button.on{background:#d8b86a;color:#1a1a1a;border-color:#d8b86a}
+#stats{font:11px monospace;color:#aaa;padding:2px 6px}
+.tlabel{display:flex;align-items:center;pointer-events:none;font:300 19px "Cormorant Garamond","Playfair Display",Didot,"Bodoni 72",Georgia,"Times New Roman",serif;letter-spacing:.16em;color:#fff;text-shadow:0 0 2px rgba(0,0,0,.6),0 1px 10px rgba(0,0,0,.75);white-space:nowrap;transition:opacity .4s}
+.tlabel .dot{width:8px;height:8px;border-radius:50%;background:#f3b77a;box-shadow:0 0 0 4px rgba(243,183,122,.32),0 0 10px rgba(255,190,120,.8);flex:none}
+.tlabel .line{height:1px;width:120px;background:linear-gradient(90deg,rgba(255,255,255,.95),rgba(255,255,255,.75));flex:none}
+.tlabel.left .line{background:linear-gradient(270deg,rgba(255,255,255,.95),rgba(255,255,255,.75))}
+.tlabel .txt{padding:0 8px 2px;text-transform:uppercase}
+.tlabel .txt::first-letter{font-size:1.25em}
+.tlabel.left{flex-direction:row-reverse}
+.labels-off .tlabel{opacity:0}

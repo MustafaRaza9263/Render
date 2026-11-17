@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>The Seven — Seven Towers · Interactive 3D</title>
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <div id="app"></div>
+  <div id="loader">
+    <div class="brand"><span class="seven">7</span><span class="word">S E V E N</span></div>
+    <div class="bar"><div id="bar-fill"></div></div>
+    <div id="load-msg">Preparing scene…</div>
+  </div>
+  <div id="ui" class="hidden">
+    <div class="title"><span class="g">7</span> THE SEVEN <small>35 floors · 7 towers · The Connect @ 20F</small></div>
+    <div class="group" id="views">
+      <button data-view="aerial" class="on">Aerial</button>
+      <button data-view="iso">Isometric</button>
+      <button data-view="street">Street level</button>
+      <button data-view="courtyard">Courtyard look-up</button>
+      <button data-view="bridge">Skybridge</button>
+    </div>
+    <div class="group" id="modes">
+      <button data-mode="day" class="on">Day</button>
+      <button data-mode="dusk">Dusk</button>
+      <button data-mode="night">Night</button>
+    </div>
+    <div class="group">
+      <button id="btn-labels">Labels</button>
+      <button id="btn-orbit">Auto-orbit</button>
+    </div>
+    <div id="stats"></div>
+  </div>
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
