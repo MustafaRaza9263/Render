@@ -28,11 +28,11 @@ export const REAL_FOOTPRINT = { minX: -74, maxX: 116, minZ: -97, maxZ: 120 };
 export const COMPOUND_CENTER = new THREE.Vector3(20.2, 48, -7.2);
 
 const LOD_Y = 64;
-// Hero cameras (aerial, CAM02, rear, top) sit inside this distance, so they
-// show lod0. Past it, each tower drops to lod1. The whole compound becomes
-// site_far.glb once the camera leaves the neighbourhood.
-const LOD1_DISTANCE = 760;
-const FAR_DISTANCE = 1200;
+// Aerial is ~340–430 m from the towers and CAM02 ~290–380 m, so both sit on
+// lod1. Rear (~160–250 m), street and courtyard stay on lod0. site_far
+// replaces the compound once the camera leaves the neighbourhood.
+const LOD1_DISTANCE = 270;
+const FAR_DISTANCE = 900;
 
 const NO_CAST = new Set(['glass', 'balcony_glass_rail', 'water_pool', 'planter_green', 'solar']);
 
