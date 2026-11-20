@@ -1,0 +1,1148 @@
+{
+ "name": "Seven Towers exterior web assets",
+ "version": 2,
+ "generated": "2026-11-20",
+ "source": "/workspace/seven/glb/model.glb (1.57 GB)",
+ "changes_v2": [
+  "NORMAL attributes included (int8 normalized VEC3 via KHR_mesh_quantization, EXT_meshopt_compression OCTAHEDRAL filter, 8 bit).",
+  "LOD0 + podium + bridges: authored source normals (3ds Max smoothing kept: smooth on curved canopy/crown/vegetation, split on hard edges); simplification uses meshopt simplifyWithAttributes(Permissive) so seams still collapse.",
+  "LOD1 + site_far: normals rebuilt after simplification with a 35 deg crease angle (smooth below, hard above). site_far tower shells: flat per-wall normals.",
+  "Podium back wall: slat bays flanking the two '7' panels (Object1633) and the two chevron '7' relief frames (Object1658/1659) re-tagged facade_white -> louvre."
+ ],
+ "transform": {
+  "description": "GLB (3ds Max glTF export, after its own 0.0254 in->m leaf scale; Y-up) -> web/site frame (metres, Y-up, three.js). Baked into all vertex data; output node transforms are identity apart from KHR_mesh_quantization dequant offsets/scales.",
+  "units": "metres",
+  "up": "+Y",
+  "formula": "x_web = cos5*(x_glb+25) + sin5*z_glb ; y_web = y_glb ; z_web = -sin5*(x_glb+25) + cos5*z_glb",
+  "matrix4_row_major": [
+   [
+    0.996194698,
+    0,
+    0.087155743,
+    24.904867452
+   ],
+   [
+    0,
+    1,
+    0,
+    0
+   ],
+   [
+    -0.087155743,
+    0,
+    0.996194698,
+    -2.178893569
+   ],
+   [
+    0,
+    0,
+    0,
+    1
+   ]
+  ],
+  "matrix4_column_major_threejs_fromArray": [
+   0.996194698,
+   0,
+   -0.087155743,
+   0,
+   0,
+   1,
+   0,
+   0,
+   0.087155743,
+   0,
+   0.996194698,
+   0,
+   24.904867452,
+   0,
+   -2.178893569,
+   1
+  ],
+  "threejs_equivalent": "new Matrix4().makeRotationY(+5deg).multiply(new Matrix4().makeTranslation(25,0,0))",
+  "spec_name": "structure_spec 'R(-5deg)' site transform; site_angle = glb_angle - 5deg; tower u-axis in web XZ = (cos a, sin a) with a = site_angle_deg",
+  "tower_ids": {
+   "T2": {
+    "glb_id": 1,
+    "site_center_xz": [
+     -50.53,
+     39.25
+    ],
+    "site_angle_deg": 0.0,
+    "glb_center_xz": [
+     -78.76,
+     34.7
+    ]
+   },
+   "T1": {
+    "glb_id": 2,
+    "site_center_xz": [
+     8.32,
+     46.57
+    ],
+    "site_angle_deg": 0.0,
+    "glb_center_xz": [
+     -20.77,
+     47.12
+    ]
+   },
+   "T3": {
+    "glb_id": 3,
+    "site_center_xz": [
+     -35.83,
+     -15.92
+    ],
+    "site_angle_deg": 31.259,
+    "glb_center_xz": [
+     -59.31,
+     -18.98
+    ]
+   },
+   "T4": {
+    "glb_id": 4,
+    "site_center_xz": [
+     30.91,
+     24.6
+    ],
+    "site_angle_deg": 31.259,
+    "glb_center_xz": [
+     3.65,
+     27.2
+    ]
+   },
+   "T5": {
+    "glb_id": 5,
+    "site_center_xz": [
+     -39.14,
+     -58.46
+    ],
+    "site_angle_deg": 31.263,
+    "glb_center_xz": [
+     -58.89,
+     -61.65
+    ]
+   },
+   "T6": {
+    "glb_id": 6,
+    "site_center_xz": [
+     15.83,
+     -24.94
+    ],
+    "site_angle_deg": 31.26,
+    "glb_center_xz": [
+     -7.05,
+     -23.46
+    ]
+   },
+   "T7": {
+    "glb_id": 7,
+    "site_center_xz": [
+     71.22,
+     8.53
+    ],
+    "site_angle_deg": 31.261,
+    "glb_center_xz": [
+     45.2,
+     14.7
+    ]
+   }
+  },
+  "note_ids": "Files are named by USER labels. User T1 = GLB tower 2 (cut side), user T2 = GLB tower 1; T3..T7 identical."
+ },
+ "required_gltf_extensions": [
+  "EXT_mesh_gpu_instancing",
+  "EXT_meshopt_compression",
+  "KHR_mesh_quantization"
+ ],
+ "loader_notes": [
+  "three.js GLTFLoader + setMeshoptDecoder(MeshoptDecoder) required.",
+  "Every primitive carries NORMAL; GLTFLoader will NOT enable flatShading. Do not call computeVertexNormals (it would discard the authored hard/smooth split).",
+  "EXT_mesh_gpu_instancing nodes load as THREE.InstancedMesh (mirrored source instances were baked into separate mirrored meshes, so all instance matrices are proper rotations).",
+  "Materials are named by semantic id (material.name) so the app can swap in its own PBR materials; extras.srgb holds the authoring hex.",
+  "glass alpha 0.92 BLEND, balcony_glass_rail/water_pool alpha 0.85 BLEND; rails/glass/louvre/metal/solar doubleSided.",
+  "site_far shells carry TEXCOORD_0 in metres (u = perimeter distance, v = height) for a tiled facade texture.",
+  "LOD scheme: per tower LOD0 (near) / LOD1 (mid); site_far.glb replaces all towers + podium + bridges at distance. podium.glb and bridges.glb have one LOD.",
+  "Vegetation is instanced low-poly proxies in the files; raw positions/scales in vegetation_instances.json for custom tree instancing."
+ ],
+ "courts_note": "Court colours follow render CAM08, NOT structure_spec.json: the T5-T6 gap court (spec court[0], GLB (-28.4,-41.1)) is podium_court_RED (futsal) and the T6-T7 gap court (spec court[1], GLB (15.4,-9.0)) is podium_court_GREEN (box cricket, with a 1.8 x 10.06 m concrete wicket strip). structure_spec.json lists them the other way round; the renders are treated as the reference.",
+ "palette": {
+  "facade_white": {
+   "srgb": "#e6e1d8",
+   "metallic": 0.0,
+   "roughness": 0.85
+  },
+  "facade_grey_panel": {
+   "srgb": "#9a9590",
+   "metallic": 0.0,
+   "roughness": 0.85
+  },
+  "glass": {
+   "srgb": "#3e4954",
+   "metallic": 0.0,
+   "roughness": 0.08
+  },
+  "balcony_glass_rail": {
+   "srgb": "#8fa3ad",
+   "metallic": 0.0,
+   "roughness": 0.05
+  },
+  "metal_dark": {
+   "srgb": "#2d3033",
+   "metallic": 0.6,
+   "roughness": 0.45
+  },
+  "louvre": {
+   "srgb": "#c8c6c1",
+   "metallic": 0.2,
+   "roughness": 0.6
+  },
+  "gold_logo": {
+   "srgb": "#c9a227",
+   "metallic": 1.0,
+   "roughness": 0.3
+  },
+  "podium_court_green": {
+   "srgb": "#4f8a3c",
+   "metallic": 0.0,
+   "roughness": 0.9
+  },
+  "podium_court_red": {
+   "srgb": "#a8443a",
+   "metallic": 0.0,
+   "roughness": 0.9
+  },
+  "jogging_pink": {
+   "srgb": "#c8746a",
+   "metallic": 0.0,
+   "roughness": 0.95
+  },
+  "planter_green": {
+   "srgb": "#5a7548",
+   "metallic": 0.0,
+   "roughness": 0.95
+  },
+  "water_pool": {
+   "srgb": "#2f8fb3",
+   "metallic": 0.0,
+   "roughness": 0.05
+  },
+  "concrete": {
+   "srgb": "#bdb8b0",
+   "metallic": 0.0,
+   "roughness": 0.95
+  },
+  "solar": {
+   "srgb": "#1d2a3f",
+   "metallic": 0.3,
+   "roughness": 0.2
+  }
+ },
+ "files": [
+  {
+   "file": "towers/T1_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 2644860,
+   "MB": 2.645,
+   "tris": 618004,
+   "bbox_web": {
+    "min": [
+     -18.629,
+     27.584,
+     29.958
+    ],
+    "max": [
+     36.65,
+     129.705,
+     64.127
+    ]
+   },
+   "materials_tris": {
+    "glass": 64080,
+    "metal_dark": 198803,
+    "solar": 312,
+    "planter_green": 15784,
+    "concrete": 40146,
+    "balcony_glass_rail": 41472,
+    "facade_grey_panel": 48230,
+    "facade_white": 203941,
+    "water_pool": 5236
+   },
+   "tris_before_simplify": 1762869,
+   "tower": "T1",
+   "glb_id": 2,
+   "site_center_xz": [
+    8.32,
+    46.57
+   ],
+   "site_angle_deg": 0.0,
+   "center_check": {
+    "glb_id": 2,
+    "measured": [
+     8.32,
+     46.569
+    ],
+    "spec": [
+     8.32,
+     46.57
+    ],
+    "dist_m": 0.001,
+    "extent_uv": [
+     46.79,
+     32
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T1_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 1045004,
+   "MB": 1.045,
+   "tris": 116440,
+   "bbox_web": {
+    "min": [
+     -17.969,
+     27.584,
+     29.958
+    ],
+    "max": [
+     36.65,
+     129.705,
+     63.181
+    ]
+   },
+   "materials_tris": {
+    "glass": 19852,
+    "metal_dark": 350,
+    "balcony_glass_rail": 2784,
+    "concrete": 16691,
+    "facade_grey_panel": 29533,
+    "facade_white": 47198,
+    "planter_green": 24,
+    "water_pool": 8
+   },
+   "tris_before_simplify": 1746773,
+   "tower": "T1",
+   "glb_id": 2,
+   "site_center_xz": [
+    8.32,
+    46.57
+   ],
+   "site_angle_deg": 0.0,
+   "center_check": {
+    "glb_id": 2,
+    "measured": [
+     8.319,
+     46.569
+    ],
+    "spec": [
+     8.32,
+     46.57
+    ],
+    "dist_m": 0.001,
+    "extent_uv": [
+     46.79,
+     32
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T2_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 2861756,
+   "MB": 2.862,
+   "tris": 709805,
+   "bbox_web": {
+    "min": [
+     -66.689,
+     27.584,
+     11.079
+    ],
+    "max": [
+     -31.479,
+     129.706,
+     64.674
+    ]
+   },
+   "materials_tris": {
+    "glass": 72948,
+    "metal_dark": 241385,
+    "solar": 336,
+    "planter_green": 22054,
+    "balcony_glass_rail": 41566,
+    "concrete": 44009,
+    "facade_grey_panel": 61975,
+    "facade_white": 220296,
+    "water_pool": 5236
+   },
+   "tris_before_simplify": 1874093,
+   "tower": "T2",
+   "glb_id": 1,
+   "site_center_xz": [
+    -50.53,
+    39.25
+   ],
+   "site_angle_deg": 0.0,
+   "center_check": {
+    "glb_id": 1,
+    "measured": [
+     -50.534,
+     39.255
+    ],
+    "spec": [
+     -50.53,
+     39.25
+    ],
+    "dist_m": 0.007,
+    "extent_uv": [
+     30.94,
+     49.38
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T2_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 1224652,
+   "MB": 1.225,
+   "tris": 141920,
+   "bbox_web": {
+    "min": [
+     -66.613,
+     27.584,
+     11.095
+    ],
+    "max": [
+     -31.479,
+     129.706,
+     64.553
+    ]
+   },
+   "materials_tris": {
+    "glass": 22832,
+    "balcony_glass_rail": 4080,
+    "concrete": 17876,
+    "facade_grey_panel": 39230,
+    "facade_white": 56020,
+    "metal_dark": 4,
+    "planter_green": 1870,
+    "water_pool": 8
+   },
+   "tris_before_simplify": 1853737,
+   "tower": "T2",
+   "glb_id": 1,
+   "site_center_xz": [
+    -50.53,
+    39.25
+   ],
+   "site_angle_deg": 0.0,
+   "center_check": {
+    "glb_id": 1,
+    "measured": [
+     -50.534,
+     39.255
+    ],
+    "spec": [
+     -50.53,
+     39.25
+    ],
+    "dist_m": 0.007,
+    "extent_uv": [
+     30.94,
+     49.38
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T3_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 2379268,
+   "MB": 2.379,
+   "tris": 468177,
+   "bbox_web": {
+    "min": [
+     -59.165,
+     27.584,
+     -35.539
+    ],
+    "max": [
+     -12.198,
+     129.706,
+     4.12
+    ]
+   },
+   "materials_tris": {
+    "glass": 40428,
+    "metal_dark": 116439,
+    "solar": 192,
+    "planter_green": 13400,
+    "balcony_glass_rail": 41190,
+    "concrete": 32373,
+    "facade_grey_panel": 41427,
+    "facade_white": 180110,
+    "water_pool": 2618
+   },
+   "tris_before_simplify": 669944,
+   "tower": "T3",
+   "glb_id": 3,
+   "site_center_xz": [
+    -35.83,
+    -15.92
+   ],
+   "site_angle_deg": 31.259,
+   "center_check": {
+    "glb_id": 3,
+    "measured": [
+     -35.835,
+     -15.915
+    ],
+    "spec": [
+     -35.83,
+     -15.92
+    ],
+    "dist_m": 0.007,
+    "extent_uv": [
+     42.47,
+     20.58
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T3_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 929452,
+   "MB": 0.929,
+   "tris": 100868,
+   "bbox_web": {
+    "min": [
+     -59.016,
+     27.584,
+     -35.408
+    ],
+    "max": [
+     -12.653,
+     129.706,
+     3.299
+    ]
+   },
+   "materials_tris": {
+    "glass": 13484,
+    "balcony_glass_rail": 1964,
+    "concrete": 13184,
+    "facade_grey_panel": 30723,
+    "facade_white": 41505,
+    "metal_dark": 4,
+    "water_pool": 4
+   },
+   "tris_before_simplify": 656352,
+   "tower": "T3",
+   "glb_id": 3,
+   "site_center_xz": [
+    -35.83,
+    -15.92
+   ],
+   "site_angle_deg": 31.259,
+   "center_check": {
+    "glb_id": 3,
+    "measured": [
+     -35.834,
+     -15.915
+    ],
+    "spec": [
+     -35.83,
+     -15.92
+    ],
+    "dist_m": 0.007,
+    "extent_uv": [
+     42.47,
+     20.58
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T4_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 2371804,
+   "MB": 2.372,
+   "tris": 469404,
+   "bbox_web": {
+    "min": [
+     7.043,
+     27.584,
+     5.105
+    ],
+    "max": [
+     54.613,
+     129.706,
+     44.909
+    ]
+   },
+   "materials_tris": {
+    "glass": 40428,
+    "metal_dark": 116446,
+    "solar": 192,
+    "planter_green": 13020,
+    "balcony_glass_rail": 41416,
+    "concrete": 31840,
+    "facade_grey_panel": 42112,
+    "facade_white": 181332,
+    "water_pool": 2618
+   },
+   "tris_before_simplify": 669881,
+   "tower": "T4",
+   "glb_id": 4,
+   "site_center_xz": [
+    30.91,
+    24.6
+   ],
+   "site_angle_deg": 31.259,
+   "center_check": {
+    "glb_id": 4,
+    "measured": [
+     30.913,
+     24.6
+    ],
+    "spec": [
+     30.91,
+     24.6
+    ],
+    "dist_m": 0.003,
+    "extent_uv": [
+     42.47,
+     20.58
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T4_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 914156,
+   "MB": 0.914,
+   "tris": 100282,
+   "bbox_web": {
+    "min": [
+     7.731,
+     27.584,
+     5.388
+    ],
+    "max": [
+     54.093,
+     129.706,
+     44.774
+    ]
+   },
+   "materials_tris": {
+    "glass": 13484,
+    "balcony_glass_rail": 1950,
+    "concrete": 13706,
+    "facade_grey_panel": 30255,
+    "facade_white": 40879,
+    "metal_dark": 4,
+    "water_pool": 4
+   },
+   "tris_before_simplify": 656669,
+   "tower": "T4",
+   "glb_id": 4,
+   "site_center_xz": [
+    30.91,
+    24.6
+   ],
+   "site_angle_deg": 31.259,
+   "center_check": {
+    "glb_id": 4,
+    "measured": [
+     30.911,
+     24.6
+    ],
+    "spec": [
+     30.91,
+     24.6
+    ],
+    "dist_m": 0.001,
+    "extent_uv": [
+     42.47,
+     20.58
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T5_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 3054324,
+   "MB": 3.054,
+   "tris": 581020,
+   "bbox_web": {
+    "min": [
+     -65.956,
+     27.584,
+     -81.922
+    ],
+    "max": [
+     -10.071,
+     129.705,
+     -34.232
+    ]
+   },
+   "materials_tris": {
+    "glass": 49776,
+    "metal_dark": 157825,
+    "solar": 240,
+    "planter_green": 17100,
+    "balcony_glass_rail": 46124,
+    "concrete": 45015,
+    "facade_grey_panel": 48755,
+    "facade_white": 213567,
+    "water_pool": 2618
+   },
+   "tris_before_simplify": 1376051,
+   "tower": "T5",
+   "glb_id": 5,
+   "site_center_xz": [
+    -39.14,
+    -58.46
+   ],
+   "site_angle_deg": 31.263,
+   "center_check": {
+    "glb_id": 5,
+    "measured": [
+     -39.215,
+     -58.331
+    ],
+    "spec": [
+     -39.14,
+     -58.46
+    ],
+    "dist_m": 0.149,
+    "extent_uv": [
+     47.56,
+     24.99
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T5_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 1315000,
+   "MB": 1.315,
+   "tris": 131517,
+   "bbox_web": {
+    "min": [
+     -65.362,
+     27.584,
+     -81.169
+    ],
+    "max": [
+     -12.437,
+     129.705,
+     -36.153
+    ]
+   },
+   "materials_tris": {
+    "glass": 15600,
+    "balcony_glass_rail": 3520,
+    "concrete": 15637,
+    "facade_grey_panel": 38801,
+    "facade_white": 57951,
+    "metal_dark": 4,
+    "water_pool": 4
+   },
+   "tris_before_simplify": 1358711,
+   "tower": "T5",
+   "glb_id": 5,
+   "site_center_xz": [
+    -39.14,
+    -58.46
+   ],
+   "site_angle_deg": 31.263,
+   "center_check": {
+    "glb_id": 5,
+    "measured": [
+     -39.216,
+     -58.332
+    ],
+    "spec": [
+     -39.14,
+     -58.46
+    ],
+    "dist_m": 0.149,
+    "extent_uv": [
+     47.55,
+     24.99
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T6_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 2277492,
+   "MB": 2.277,
+   "tris": 452018,
+   "bbox_web": {
+    "min": [
+     -2.381,
+     27.584,
+     -44.731
+    ],
+    "max": [
+     35.652,
+     129.706,
+     -7.395
+    ]
+   },
+   "materials_tris": {
+    "glass": 39520,
+    "metal_dark": 116844,
+    "solar": 144,
+    "planter_green": 9900,
+    "balcony_glass_rail": 39978,
+    "concrete": 29918,
+    "facade_grey_panel": 41851,
+    "facade_white": 171245,
+    "water_pool": 2618
+   },
+   "tris_before_simplify": 947397,
+   "tower": "T6",
+   "glb_id": 6,
+   "site_center_xz": [
+    15.83,
+    -24.94
+   ],
+   "site_angle_deg": 31.26,
+   "center_check": {
+    "glb_id": 6,
+    "measured": [
+     15.834,
+     -24.937
+    ],
+    "spec": [
+     15.83,
+     -24.94
+    ],
+    "dist_m": 0.005,
+    "extent_uv": [
+     26.22,
+     24.79
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T6_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 783516,
+   "MB": 0.784,
+   "tris": 85979,
+   "bbox_web": {
+    "min": [
+     -1.853,
+     27.584,
+     -42.611
+    ],
+    "max": [
+     33.442,
+     129.706,
+     -7.722
+    ]
+   },
+   "materials_tris": {
+    "glass": 12560,
+    "balcony_glass_rail": 1738,
+    "concrete": 8598,
+    "facade_grey_panel": 31764,
+    "facade_white": 31311,
+    "metal_dark": 4,
+    "water_pool": 4
+   },
+   "tris_before_simplify": 937353,
+   "tower": "T6",
+   "glb_id": 6,
+   "site_center_xz": [
+    15.83,
+    -24.94
+   ],
+   "site_angle_deg": 31.26,
+   "center_check": {
+    "glb_id": 6,
+    "measured": [
+     15.832,
+     -24.938
+    ],
+    "spec": [
+     15.83,
+     -24.94
+    ],
+    "dist_m": 0.003,
+    "extent_uv": [
+     26.22,
+     24.79
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T7_lod0.glb",
+   "kind": "tower",
+   "lod": "lod0",
+   "bytes": 3003384,
+   "MB": 3.003,
+   "tris": 581534,
+   "bbox_web": {
+    "min": [
+     44.088,
+     27.584,
+     -16.522
+    ],
+    "max": [
+     98.342,
+     129.705,
+     31.114
+    ]
+   },
+   "materials_tris": {
+    "glass": 49776,
+    "metal_dark": 157828,
+    "solar": 240,
+    "planter_green": 17660,
+    "balcony_glass_rail": 46097,
+    "concrete": 47971,
+    "facade_grey_panel": 48626,
+    "facade_white": 210718,
+    "water_pool": 2618
+   },
+   "tris_before_simplify": 1375102,
+   "tower": "T7",
+   "glb_id": 7,
+   "site_center_xz": [
+    71.22,
+    8.53
+   ],
+   "site_angle_deg": 31.261,
+   "center_check": {
+    "glb_id": 7,
+    "measured": [
+     71.141,
+     8.657
+    ],
+    "spec": [
+     71.22,
+     8.53
+    ],
+    "dist_m": 0.15,
+    "extent_uv": [
+     47.56,
+     25
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "towers/T7_lod1.glb",
+   "kind": "tower",
+   "lod": "lod1",
+   "bytes": 1281988,
+   "MB": 1.282,
+   "tris": 130515,
+   "bbox_web": {
+    "min": [
+     44.995,
+     27.584,
+     -14.227
+    ],
+    "max": [
+     97.92,
+     129.705,
+     30.452
+    ]
+   },
+   "materials_tris": {
+    "glass": 15600,
+    "balcony_glass_rail": 3530,
+    "concrete": 16095,
+    "facade_grey_panel": 38523,
+    "facade_white": 56757,
+    "metal_dark": 6,
+    "water_pool": 4
+   },
+   "tris_before_simplify": 1357202,
+   "tower": "T7",
+   "glb_id": 7,
+   "site_center_xz": [
+    71.22,
+    8.53
+   ],
+   "site_angle_deg": 31.261,
+   "center_check": {
+    "glb_id": 7,
+    "measured": [
+     71.14,
+     8.657
+    ],
+    "spec": [
+     71.22,
+     8.53
+    ],
+    "dist_m": 0.15,
+    "extent_uv": [
+     47.55,
+     25
+    ],
+    "pass": true
+   }
+  },
+  {
+   "file": "podium.glb",
+   "kind": "podium",
+   "lod": "lod0",
+   "bytes": 3582900,
+   "MB": 3.583,
+   "tris": 574575,
+   "bbox_web": {
+    "min": [
+     -72.714,
+     -2.438,
+     -94.617
+    ],
+    "max": [
+     113.082,
+     36.254,
+     80.265
+    ]
+   },
+   "materials_tris": {
+    "metal_dark": 34536,
+    "facade_white": 161433,
+    "concrete": 85062,
+    "planter_green": 124617,
+    "balcony_glass_rail": 694,
+    "facade_grey_panel": 39116,
+    "glass": 10810,
+    "gold_logo": 7972,
+    "jogging_pink": 1058,
+    "louvre": 109273,
+    "podium_court_green": 2,
+    "podium_court_red": 2
+   },
+   "tris_before_simplify": 3432791
+  },
+  {
+   "file": "bridges.glb",
+   "kind": "bridges",
+   "lod": "lod0",
+   "bytes": 197580,
+   "MB": 0.198,
+   "tris": 34401,
+   "bbox_web": {
+    "min": [
+     -47.26,
+     73.724,
+     -50.718
+    ],
+    "max": [
+     58.524,
+     79.414,
+     61.762
+    ]
+   },
+   "materials_tris": {
+    "planter_green": 14733,
+    "balcony_glass_rail": 1810,
+    "concrete": 1716,
+    "facade_white": 13710,
+    "metal_dark": 2432
+   },
+   "tris_before_simplify": 36180
+  },
+  {
+   "file": "site_far.glb",
+   "kind": "site_far",
+   "lod": "far",
+   "bytes": 772772,
+   "MB": 0.773,
+   "tris": 99520,
+   "bbox_web": {
+    "min": [
+     -71.873,
+     -2.442,
+     -94.613
+    ],
+    "max": [
+     113.082,
+     129.703,
+     80.272
+    ]
+   },
+   "materials_tris": {
+    "metal_dark": 68,
+    "facade_white": 35189,
+    "concrete": 56366,
+    "facade_grey_panel": 4053,
+    "water_pool": 36,
+    "balcony_glass_rail": 236,
+    "glass": 64,
+    "gold_logo": 22,
+    "jogging_pink": 80,
+    "louvre": 3165,
+    "planter_green": 237,
+    "podium_court_green": 2,
+    "podium_court_red": 2
+   }
+  }
+ ],
+ "aux": {
+  "vegetation_instances.json": {
+   "bytes": 1445798
+  },
+  "transform.json": {},
+  "center_check.json": {
+   "method": "OBB centre in the tower's site-angle frame of facade_white+facade_grey_panel baked geometry, 40<y<70 m, measured on the final compressed files",
+   "tolerance_m": 1.0,
+   "all_pass": true,
+   "max_dist_m": 0.15
+  }
+ },
+ "totals": {
+  "bytes_glb": 30639908,
+  "MB_glb": 30.64,
+  "lod0_scene_tris": 4488938,
+  "lod1_scene_tris": 1416497,
+  "far_tris": 99520,
+  "max_file_MB": 3.58
+ },
+ "previews": [
+  "previews/back_podium_lod0_color.png",
+  "previews/cam02_lod0_clay.png",
+  "previews/cam02_lod0_color.png",
+  "previews/cam02_lod1_color.png",
+  "previews/cam02_site_far_color.png",
+  "previews/cam08_lod0_clay.png",
+  "previews/cam08_lod0_color.png",
+  "previews/cam08_site_far_color.png",
+  "previews/closeup_T2_crown_clay.png",
+  "previews/closeup_entrance_clay.png",
+  "previews/normals_v1flat_vs_v2_T2crown.jpg",
+  "previews/normals_v1flat_vs_v2_entrance.jpg",
+  "previews/sbs_cam02_render_vs_lod0.jpg",
+  "previews/sbs_cam08_render_vs_lod0.jpg",
+  "previews/top_lod0_color.png"
+ ]
+}

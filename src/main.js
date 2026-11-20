@@ -4,8 +4,8 @@ import { createSky, applySky, SKY_PRESETS } from './sky.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Effect, EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, ToneMappingEffect, ToneMappingMode, VignetteEffect } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
-import { createMaterials, U } from './materials.js';
-import { TOWERS, Y_TOP, Y_POD, Y_BRIDGE, T } from './layout.js';
+import { createMaterials, createRealMaterials, U } from './materials.js';
+import { TOWERS, Y_TOP, Y_POD } from './layout.js';
 import { buildTower } from './tower.js';
 import { buildBridges, buildPeople } from './bridges.js';
 import { buildRoofs } from './roof.js';
@@ -15,6 +15,7 @@ import { Foliage } from './vegetation.js';
 
 const params = new URLSearchParams(location.search);
 const SHOT = params.has('shot');
+const PROCEDURAL = params.get('procedural') === '1';
 const $ = (s) => document.querySelector(s);
 const setLoad = (p, msg) => { $('#bar-fill').style.width = (p * 100) + '%'; $('#load-msg').textContent = msg; };
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
@@ -41,7 +42,7 @@ camera.position.set(-260, 230, 360);
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.target.set(0, 55, 0);
 controls.enableDamping = true; controls.dampingFactor = 0.06;
-controls.minDistance = 8; controls.maxDistance = 1400;
+controls.minDistance = 8; controls.maxDistance = PROCEDURAL ? 1400 : 2000;
 controls.maxPolarAngle = Math.PI * 0.97;
 controls.autoRotateSpeed = 0.35;
 
@@ -49,7 +50,9 @@ controls.autoRotateSpeed = 0.35;
 const sun = new THREE.DirectionalLight('#fff4e5', 3.2);
 sun.castShadow = true;
 const SM = +(params.get('sm') || 4096); sun.shadow.mapSize.set(SM, SM);
-const sc = sun.shadow.camera; sc.left = -135; sc.right = 135; sc.top = 135; sc.bottom = -135; sc.near = 10; sc.far = 900; sc.updateProjectionMatrix();
+const sc = sun.shadow.camera; sc.left = -135; sc.right = 135; sc.top = 135; sc.bottom = -135; sc.near = 10; sc.far = 900;
+if (!PROCEDURAL) { sc.left = sc.bottom = -200; sc.right = sc.top = 200; }
+sc.updateProjectionMatrix();
 sun.shadow.bias = -0.0002; sun.shadow.normalBias = 0.06; sun.shadow.radius = 2.5;
 scene.add(sun, sun.target);
 const hemi = new THREE.HemisphereLight('#cfe2ff', '#a89a83', 0.35);
@@ -115,45 +118,64 @@ composer.addPass(new EffectPass(camera, ...fxList));
 if (FX.includes('smaa')) composer.addPass(new EffectPass(camera, new SMAAEffect()));
 
 // ---------------- build scene ----------------
-let M, traffic, labels = [];
+let M, traffic, labels = [], realApi = null;
+function addLabel(name, x, y, z, side) {
+  const el = document.createElement('div');
+  el.className = 'tlabel ' + side;
+  el.innerHTML = `<span class="dot"></span><span class="line"></span><span class="txt">${name}</span>`;
+  const o = new CSS2DObject(el);
+  o.center.set(side === 'left' ? 1 : 0, 0.5);
+  o.position.set(x, y, z);
+  scene.add(o); labels.push(o);
+}
 async function build() {
   setLoad(0.05, 'Creating materials');
   await frame();
   M = createMaterials(renderer.capabilities.getMaxAnisotropy());
   const foliage = new Foliage();
-  const people = [];
-  setLoad(0.15, 'Modelling seven towers · 35 floors');
-  await frame();
-  for (const t of TOWERS) { scene.add(buildTower(t, M, foliage)); }
-  setLoad(0.4, 'Building The Connect skybridges (20F)');
-  await frame();
-  buildBridges(scene, M, foliage, people);
-  setLoad(0.5, 'Rooftop decks, pools & pergolas');
-  await frame();
-  buildRoofs(scene, M, foliage);
-  setLoad(0.6, 'Podium, terraces & entrance');
-  await frame();
-  buildPodium(scene, M, foliage);
-  setLoad(0.72, 'Roads, flyover, canal & neighbourhood');
-  await frame();
-  buildContext(scene, M, foliage);
-  traffic = new Traffic(scene, M);
-  setLoad(0.85, 'Landscaping');
-  await frame();
-  foliage.build(scene, M);
-  buildPeople(scene, M, people);
-  // labels like the marketing aerial
-  const lab = { Imperial: [0.86, 'left'], Harmony: [0.93, 'right'], Cove: [0.8, 'right'], Oasis: [0.72, 'left'], Elite: [0.5, 'left'], Alpha: [0.38, 'right'], Nexus: [0.62, 'right'] };
-  for (const t of TOWERS) {
-    const [hf, side] = lab[t.name];
-    const el = document.createElement('div');
-    el.className = 'tlabel ' + side;
-    el.innerHTML = `<span class="dot"></span><span class="line"></span><span class="txt">${t.name}</span>`;
-    const o = new CSS2DObject(el);
-    o.center.set(side === 'left' ? 1 : 0, 0.5);
-    const sx = side === 'left' ? -1 : 1;
-    o.position.set(t.x + sx * t.w * 0.25, Y_POD + (Y_TOP - Y_POD) * hf, t.z + t.d / 2 + 0.5);
-    scene.add(o); labels.push(o);
+  if (PROCEDURAL) {
+    const people = [];
+    setLoad(0.15, 'Modelling seven towers · 35 floors');
+    await frame();
+    for (const t of TOWERS) { scene.add(buildTower(t, M, foliage)); }
+    setLoad(0.4, 'Building The Connect skybridges (20F)');
+    await frame();
+    buildBridges(scene, M, foliage, people);
+    setLoad(0.5, 'Rooftop decks, pools & pergolas');
+    await frame();
+    buildRoofs(scene, M, foliage);
+    setLoad(0.6, 'Podium, terraces & entrance');
+    await frame();
+    buildPodium(scene, M, foliage);
+    setLoad(0.72, 'Roads, flyover, canal & neighbourhood');
+    await frame();
+    buildContext(scene, M, foliage);
+    traffic = new Traffic(scene, M);
+    setLoad(0.85, 'Landscaping');
+    await frame();
+    foliage.build(scene, M);
+    buildPeople(scene, M, people);
+    const lab = { Imperial: [0.86, 'left'], Harmony: [0.93, 'right'], Cove: [0.8, 'right'], Oasis: [0.72, 'left'], Elite: [0.5, 'left'], Alpha: [0.38, 'right'], Nexus: [0.62, 'right'] };
+    for (const t of TOWERS) {
+      const [hf, side] = lab[t.name];
+      const sx = side === 'left' ? -1 : 1;
+      addLabel(t.name, t.x + sx * t.w * 0.25, Y_POD + (Y_TOP - Y_POD) * hf, t.z + t.d / 2 + 0.5, side);
+    }
+  } else {
+    createRealMaterials(M);
+    const { loadRealCompound } = await import('./real.js');
+    realApi = loadRealCompound(scene, M, { onProgress: (t, msg) => setLoad(0.1 + t * 0.62, msg) });
+    await realApi.firstPaint;
+    setLoad(0.74, 'Roads, flyover, canal & neighbourhood');
+    await frame();
+    buildContext(scene, M, foliage, { footprint: realApi.footprint });
+    traffic = new Traffic(scene, M);
+    setLoad(0.86, 'Landscaping');
+    await frame();
+    foliage.build(scene, M);
+    for (const t of realApi.towers) addLabel(t.id, t.x, 102, t.z, t.x < 15 ? 'left' : 'right');
+    const sub = document.querySelector('#ui .title small');
+    if (sub) sub.textContent = 'Real exterior · 7 towers · podium · sky-bridges';
   }
   setLoad(0.95, 'Lighting');
   await frame();
@@ -166,6 +188,7 @@ const MODES = {
   night: { elev: -10, az: 300, turb: 2, ray: 1, sun: '#8fa8ff', sunI: 0.12, hemiI: 0.04, night: 1, fog: '#141824', fogD: 0.0008, grade: [1.0, 0.98, 0.97, 1.0, 1.04], env: 0.35, bgI: 1.0, bloom: 1.05, thr: 0.85 },
 };
 let mode = 'day';
+const focus = PROCEDURAL ? new THREE.Vector3(0, 40, 0) : new THREE.Vector3(16, 45, -6);
 function applyMode(name) {
   mode = name; const m = MODES[name];
   const th = THREE.MathUtils.degToRad(m.az);
@@ -175,7 +198,7 @@ function applyMode(name) {
   const ldir = name === 'night' ? new THREE.Vector3().setFromSphericalCoords(1, THREE.MathUtils.degToRad(50), th) : sdir.clone();
   if (name !== 'night' && m.elev < 12) ldir.y = Math.max(ldir.y, 0.12);
   sun.position.copy(ldir.normalize().multiplyScalar(450));
-  sun.target.position.set(0, 40, 0);
+  sun.target.position.copy(focus);
   sun.color.set(m.sun); sun.intensity = m.sunI;
   hemi.intensity = m.hemiI;
   hemi.color.set(name === 'night' ? '#30406a' : '#cfe2ff');
@@ -201,16 +224,28 @@ function applyMode(name) {
   M.fin.emissive.set('#ffcf9a'); M.fin.emissiveIntensity = n * n * 0.08;
   M.slabWhite.emissive.set('#ffcf9a'); M.slabWhite.emissiveIntensity = n * n * 0.06;
   M.steel.emissive.set('#ffe2b8'); M.steel.emissiveIntensity = n * n * 0.3;
+  if (M.real) {
+    const R = M.real;
+    R.glass.emissive.set('#ffd2a8'); R.glass.emissiveIntensity = n * n * 0.45;
+    R.water_pool.emissive.set('#7fd4ff'); R.water_pool.emissiveIntensity = 0.05 + n * 1.15;
+    R.facade_white.emissive.set('#ffcf9a'); R.facade_white.emissiveIntensity = n * n * 0.05;
+    R.gold_logo.emissive.set('#c9a227'); R.gold_logo.emissiveIntensity = n * 0.15;
+  }
   M.carLights.color.setScalar(0.6 + n * 6);
   document.querySelectorAll('#modes button').forEach(b => b.classList.toggle('on', b.dataset.mode === name));
 }
 
+// Framed on the real compound (bbox centre near x 20, z -7). The same presets
+// are used for the procedural fallback so before/after shots share a camera.
 const VIEWS = {
-  aerial: { pos: [-95, 245, 330], tgt: [0, 35, 5], fov: 35 },
-  iso: { pos: [70, 330, 540], tgt: [0, 52, 8], fov: 24 },
-  street: { pos: [-20, 1.7, 112], tgt: [-2, 64, 22], fov: 55 },
-  courtyard: { pos: [6, Y_POD + 1.7, 4], tgt: [4, 150, 2], fov: 78 },
-  bridge: { pos: [26, Y_BRIDGE + 9, 8], tgt: [-6, Y_BRIDGE + 1.5, 27], fov: 52 },
+  aerial: { pos: [-150, 250, 310], tgt: [16, 40, -6], fov: 34 },
+  cam02: { pos: [78, 268, 236], tgt: [8, 32, 0], fov: 32 },
+  rear: { pos: [28, 95, -200], tgt: [14, 40, -12], fov: 36 },
+  top: { pos: [20, 520, -6.2], tgt: [20, 0, -7], fov: 30 },
+  iso: { pos: [160, 360, 420], tgt: [16, 48, -8], fov: 26 },
+  street: { pos: [16, 2.4, 158], tgt: [8, 26, 36], fov: 50 },
+  courtyard: { pos: [-2, 32.2, 8], tgt: [6, 120, -20], fov: 72 },
+  bridge: { pos: [-8, 78.5, 58], tgt: [-22, 76, 40], fov: 50 },
 };
 let tween = null;
 function goView(name, instant = false) {
@@ -239,7 +274,8 @@ const clock = new THREE.Timer();
 let acc = 0, frames = 0, fpsT = 0, slowFrames = 0;
 function stats() {
   const info = renderer.info;
-  $('#stats').textContent = `${(1000 / Math.max(1, acc)).toFixed(0)} fps · ${(info.render.triangles / 1e6).toFixed(2)}M tris · ${info.render.calls} calls · dpr ${dpr.toFixed(2)}`;
+  window.__stats = { tris: info.render.triangles, calls: info.render.calls, fps: 1000 / Math.max(1, acc) };
+  $('#stats').textContent = `${window.__stats.fps.toFixed(0)} fps · ${(info.render.triangles / 1e6).toFixed(2)}M tris · ${info.render.calls} calls · dpr ${dpr.toFixed(2)}`;
 }
 function loop() {
   clock.update(); const dt = Math.min(clock.getDelta(), 0.1);
@@ -255,6 +291,7 @@ function loop() {
   }
   controls.update(dt);
   if (camera.position.y < 1.2) camera.position.y = 1.2;
+  if (realApi) realApi.update(camera);
   if (traffic && !SHOT) traffic.update(dt);
   renderer.info.reset();
   renderer.info.autoReset = false;
@@ -263,7 +300,7 @@ function loop() {
   // adaptive pixel ratio
   if (!SHOT) {
     acc = acc * 0.9 + dt * 1000 * 0.1; frames++;
-    if (frames % 30 === 0) {
+      if (frames % 30 === 0) {
       stats();
       if (acc > 45 && dpr > 0.6) { dpr = Math.max(0.6, dpr - 0.15); renderer.setPixelRatio(dpr); composer.setSize(W(), H()); }
       else if (acc < 22 && dpr < Math.min(window.devicePixelRatio, 1.75)) { dpr = Math.min(Math.min(window.devicePixelRatio, 1.75), dpr + 0.1); renderer.setPixelRatio(dpr); composer.setSize(W(), H()); }
@@ -278,12 +315,21 @@ function loop() {
   goView(params.get('view') || 'aerial', true);
   setLabels(labelsOn);
   if (params.get('orbit') === '1') { controls.autoRotate = true; $('#btn-orbit').classList.add('on'); }
-  setLoad(1, 'Ready');
+  setLoad(1, PROCEDURAL ? 'Ready' : 'Refining detail');
   $('#loader').classList.add('done');
   if (!SHOT || params.get('ui') === '1') $('#ui').classList.remove('hidden');
   requestAnimationFrame(loop);
+  if (realApi) {
+    try { await realApi.complete; }
+    catch (err) {
+      console.error(err);
+      setLoad(1, 'Model failed to load');
+      $('#loader').classList.remove('done');
+      return;
+    }
+  }
   // signal readiness after a few frames (for automated screenshots)
   let n = 0; const chk = () => { if (++n > 3) { document.body.dataset.ready = '1'; window.__stats = { tris: renderer.info.render.triangles, calls: renderer.info.render.calls }; } else requestAnimationFrame(chk); };
   requestAnimationFrame(chk);
-  window.__app = { scene, camera, controls, renderer, goView, applyMode, VIEWS };
+  window.__app = { scene, camera, controls, renderer, goView, applyMode, VIEWS, procedural: PROCEDURAL };
 })();

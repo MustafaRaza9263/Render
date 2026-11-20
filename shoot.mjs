@@ -2,6 +2,9 @@ import { chromium } from 'playwright-core';
 const base = process.env.URL || 'http://localhost:4173/';
 const all = [
   ['aerial_day', 'view=aerial&mode=day'],
+  ['cam02', 'view=cam02&mode=day'],
+  ['rear', 'view=rear&mode=day'],
+  ['top', 'view=top&mode=day'],
   ['isometric_day', 'view=iso&mode=day&labels=1'],
   ['dusk', 'view=aerial&mode=dusk'],
   ['night_aerial', 'view=aerial&mode=night'],
@@ -11,6 +14,8 @@ const all = [
 ];
 const only = process.argv.slice(2);
 const list = only.length ? all.filter(s => only.includes(s[0])) : all;
+const outDir = process.env.OUT || '/workspace/seven/shots';
+const waitMs = +(process.env.WAIT || 1500);
 const browser = await chromium.launch({ executablePath: '/usr/bin/google-chrome', args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist', '--enable-webgl'] });
 for (const [name, q] of list) {
   const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
@@ -19,9 +24,9 @@ for (const [name, q] of list) {
   const t0 = Date.now();
   await page.goto(base + '?shot=1&' + q + (process.env.EXTRA || ''));
   await page.waitForSelector('body[data-ready="1"]', { timeout: 600000 });
-  await page.waitForTimeout(1500);
+  await page.waitForTimeout(waitMs);
   const st = await page.evaluate(() => window.__stats);
-  await page.screenshot({ path: `/workspace/seven/shots/${name}.png` }); if (process.env.V) await page.screenshot({ path: `/tmp/${process.env.V}_${name}.png` });
+  await page.screenshot({ path: `${outDir}/${name}.png` }); if (process.env.V) await page.screenshot({ path: `/tmp/${process.env.V}_${name}.png` });
   console.log(name, 'ok', ((Date.now() - t0) / 1000).toFixed(1) + 's', JSON.stringify(st));
   await page.close();
 }

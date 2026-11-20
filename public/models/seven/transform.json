@@ -1,0 +1,139 @@
+{
+ "description": "GLB (3ds Max glTF export, after its own 0.0254 in->m leaf scale; Y-up) -> web/site frame (metres, Y-up, three.js). Baked into all vertex data; output node transforms are identity apart from KHR_mesh_quantization dequant offsets/scales.",
+ "units": "metres",
+ "up": "+Y",
+ "formula": "x_web = cos5*(x_glb+25) + sin5*z_glb ; y_web = y_glb ; z_web = -sin5*(x_glb+25) + cos5*z_glb",
+ "matrix4_row_major": [
+  [
+   0.996194698,
+   0,
+   0.087155743,
+   24.904867452
+  ],
+  [
+   0,
+   1,
+   0,
+   0
+  ],
+  [
+   -0.087155743,
+   0,
+   0.996194698,
+   -2.178893569
+  ],
+  [
+   0,
+   0,
+   0,
+   1
+  ]
+ ],
+ "matrix4_column_major_threejs_fromArray": [
+  0.996194698,
+  0,
+  -0.087155743,
+  0,
+  0,
+  1,
+  0,
+  0,
+  0.087155743,
+  0,
+  0.996194698,
+  0,
+  24.904867452,
+  0,
+  -2.178893569,
+  1
+ ],
+ "threejs_equivalent": "new Matrix4().makeRotationY(+5deg).multiply(new Matrix4().makeTranslation(25,0,0))",
+ "spec_name": "structure_spec 'R(-5deg)' site transform; site_angle = glb_angle - 5deg; tower u-axis in web XZ = (cos a, sin a) with a = site_angle_deg",
+ "tower_ids": {
+  "T2": {
+   "glb_id": 1,
+   "site_center_xz": [
+    -50.53,
+    39.25
+   ],
+   "site_angle_deg": 0.0,
+   "glb_center_xz": [
+    -78.76,
+    34.7
+   ]
+  },
+  "T1": {
+   "glb_id": 2,
+   "site_center_xz": [
+    8.32,
+    46.57
+   ],
+   "site_angle_deg": 0.0,
+   "glb_center_xz": [
+    -20.77,
+    47.12
+   ]
+  },
+  "T3": {
+   "glb_id": 3,
+   "site_center_xz": [
+    -35.83,
+    -15.92
+   ],
+   "site_angle_deg": 31.259,
+   "glb_center_xz": [
+    -59.31,
+    -18.98
+   ]
+  },
+  "T4": {
+   "glb_id": 4,
+   "site_center_xz": [
+    30.91,
+    24.6
+   ],
+   "site_angle_deg": 31.259,
+   "glb_center_xz": [
+    3.65,
+    27.2
+   ]
+  },
+  "T5": {
+   "glb_id": 5,
+   "site_center_xz": [
+    -39.14,
+    -58.46
+   ],
+   "site_angle_deg": 31.263,
+   "glb_center_xz": [
+    -58.89,
+    -61.65
+   ]
+  },
+  "T6": {
+   "glb_id": 6,
+   "site_center_xz": [
+    15.83,
+    -24.94
+   ],
+   "site_angle_deg": 31.26,
+   "glb_center_xz": [
+    -7.05,
+    -23.46
+   ]
+  },
+  "T7": {
+   "glb_id": 7,
+   "site_center_xz": [
+    71.22,
+    8.53
+   ],
+   "site_angle_deg": 31.261,
+   "glb_center_xz": [
+    45.2,
+    14.7
+   ]
+  }
+ },
+ "note_ids": "Files are named by USER labels. User T1 = GLB tower 2 (cut side), user T2 = GLB tower 1; T3..T7 identical."
+}

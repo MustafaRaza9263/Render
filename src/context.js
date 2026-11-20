@@ -67,11 +67,18 @@ function distToPolyline(x, z, pts) {
   return Math.sqrt(best);
 }
 
-export function buildContext(scene, M, foliage) {
+export function buildContext(scene, M, foliage, opts = {}) {
   const b = new Batch();
   const r = rng(1234);
+  // When the real compound is loaded, keep the old road network but push the
+  // stretches that would cut the podium/towers just outside the footprint.
+  // Realignment to the site arc is a later change.
+  const fp = opts.footprint || null;
+  const blocked = (x, z, margin = 0) => fp && x > fp.minX - margin && x < fp.maxX + margin && z > fp.minZ - margin && z < fp.maxZ + margin;
   // --- road network ---
-  const mainCurve = new THREE.CatmullRomCurve3([V(520, -20), V(330, 12), V(190, 46), V(110, 74), V(40, 94), V(-40, 98), V(-100, 66), V(-136, 6), V(-156, -60), V(-196, -98), V(-300, -128), V(-520, -150)]);
+  const mainCurve = new THREE.CatmullRomCurve3(fp
+    ? [V(520, -20), V(330, 12), V(220, 40), V(175, 110), V(40, 130), V(-40, 125), V(-110, 80), V(-136, 6), V(-156, -60), V(-196, -98), V(-300, -128), V(-520, -150)]
+    : [V(520, -20), V(330, 12), V(190, 46), V(110, 74), V(40, 94), V(-40, 98), V(-100, 66), V(-136, 6), V(-156, -60), V(-196, -98), V(-300, -128), V(-520, -150)]);
   const mainPts = mainCurve.getSpacedPoints(260);
   ribbon(b, 'road', mainPts, 20, () => 0.06);
   ribbon(b, 'curb', mainPts, 21.2, () => 0.05);
@@ -83,7 +90,9 @@ export function buildContext(scene, M, foliage) {
   ROADS.main = { curve: mainCurve, width: 20, y: () => 0.25, lanes: [-7.5, -2.5, 2.5, 7.5] };
 
   // expressway on the near bank of the canal (elevated)
-  const expCurve = new THREE.CatmullRomCurve3([V(-700, -132), V(-300, -118), V(0, -110), V(300, -104), V(700, -96)]);
+  const expCurve = new THREE.CatmullRomCurve3(fp
+    ? [V(-700, -144), V(-300, -130), V(0, -124), V(300, -116), V(700, -108)]
+    : [V(-700, -132), V(-300, -118), V(0, -110), V(300, -104), V(700, -96)]);
   const expPts = expCurve.getSpacedPoints(220);
   elevated(b, expPts, 22, () => 9, M, 34, r);
   ROADS.exp = { curve: expCurve, width: 22, y: () => 9.3, lanes: [-8, -3, 3, 8] };
@@ -124,7 +133,9 @@ export function buildContext(scene, M, foliage) {
   const backPts = new THREE.CatmullRomCurve3([V(-700, -200), V(0, -184), V(700, -170)]).getSpacedPoints(120);
   ribbon(b, 'road', backPts, 12, () => 0.06);
   // right side road
-  const sideCurve = new THREE.CatmullRomCurve3([V(126, 70), V(122, 0), V(120, -80), V(118, -104)]);
+  const sideCurve = new THREE.CatmullRomCurve3(fp
+    ? [V(155, 100), V(152, 20), V(150, -40), V(148, -110)]
+    : [V(126, 70), V(122, 0), V(120, -80), V(118, -104)]);
   const sidePts = sideCurve.getSpacedPoints(60);
   ribbon(b, 'road', sidePts, 14, () => 0.07);
   ribbon(b, 'sidewalk', sidePts, 20, () => 0.045);
@@ -186,7 +197,8 @@ export function buildContext(scene, M, foliage) {
   const polylines = [mainPts, expPts, backPts, sidePts, nsPts, flyPts];
   const widths = [11, 13, 7, 8, 9, 9];
   const free = (x, z, rad) => {
-    if (x > -125 && x < 100 && z > -70 && z < 92) return false;           // the site
+    if (fp) { if (blocked(x, z, rad + 3)) return false; }                  // real compound footprint
+    else if (x > -125 && x < 100 && z > -70 && z < 92) return false;       // the procedural site
     if (z < -96 && z > -190) return false;                                 // canal corridor
     if (Math.hypot(x - CL.x, z - CL.z) < 118) return false;                // interchange
     if (Math.hypot(x + 114, z + 34) < 24) return false;                    // mosque
@@ -240,11 +252,12 @@ export function buildContext(scene, M, foliage) {
     const a = mainPts[i], c = mainPts[i + 1]; const t = c.clone().sub(a).normalize(); const s = new THREE.Vector3(-t.z, 0, t.x);
     for (const sd of [-1, 1]) {
       const p = a.clone().addScaledVector(s, sd * 12.5);
+      if (blocked(p.x, p.z, 1)) continue;
       if (i % 6 === 0) lamps.push([p.x, 0, p.z, Math.atan2(-t.z, t.x), sd]);
     }
-    if (i % 4 === 0) { const p = a.clone().addScaledVector(s, 17); if (free(p.x, p.z, 1) || true) foliage.tree(p.x, 0, p.z, 6 + r() * 3, r(), 0.2); }
+    if (i % 4 === 0) { const p = a.clone().addScaledVector(s, 17); if (!blocked(p.x, p.z, 2) && (free(p.x, p.z, 1) || true)) foliage.tree(p.x, 0, p.z, 6 + r() * 3, r(), 0.2); }
   }
-  for (let i = 0; i < expPts.length; i += 4) { const p = expPts[i]; lamps.push([p.x, 9.2, p.z, 0, 0]); }
+  for (let i = 0; i < expPts.length; i += 4) { const p = expPts[i]; if (!blocked(p.x, p.z, 1)) lamps.push([p.x, 9.2, p.z, 0, 0]); }
   for (const [x, y, z, th, sd] of lamps) {
     b.box('pole', x, y + 4.5, z, 0.22, 9, 0.22);
     b.box('lampHead', x, y + 9, z, 1.4, 0.25, 0.55, th);
