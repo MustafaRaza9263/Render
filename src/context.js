@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { Batch, rng } from './batch.js';
+import { buildRealContext } from './site.js';
 
 const V = (x, z) => new THREE.Vector3(x, 0, z);
 export const ROADS = {};
@@ -68,6 +69,12 @@ function distToPolyline(x, z, pts) {
 }
 
 export function buildContext(scene, M, foliage, opts = {}) {
+  if (opts.site) {
+    const roads = buildRealContext(scene, M, foliage);
+    for (const k of Object.keys(ROADS)) delete ROADS[k];
+    Object.assign(ROADS, roads);
+    return { lamps: [] };
+  }
   const b = new Batch();
   const r = rng(1234);
   // When the real compound is loaded, keep the old road network but push the
@@ -300,12 +307,13 @@ export class Traffic {
     this.cars = [];
     const r = rng(55);
     const palette = ['#f4f4f4', '#d0d3d6', '#1d1f22', '#8a1b1b', '#2b4d7a', '#a8a9ad', '#ffffff', '#c9b18a', '#d9d9d9', '#3a3a3a'];
-    for (const k of ['main', 'exp', 'fly', 'side', 'ns']) {
+    for (const k of ['main', 'exp', 'fly', 'side', 'ns', 'service', 'back', 'left']) {
       const R = ROADS[k]; if (!R) continue;
-      const n = { main: 70, exp: 70, fly: 34, side: 12, ns: 20 }[k];
+      const n = { main: 70, exp: 70, fly: 34, side: 12, ns: 20, service: 36, back: 24, left: 16 }[k];
       for (let i = 0; i < n; i++) {
         const lane = R.lanes[(r() * R.lanes.length) | 0];
-        this.cars.push({ R, lane, u: r(), v: (lane > 0 ? 1 : -1) * (0.00012 + r() * 0.00008) * (900 / R.curve.getLength()), color: palette[(r() * palette.length) | 0], big: r() < 0.08 });
+        const dir = R.oneWay ?? (lane > 0 ? 1 : -1);
+        this.cars.push({ R, lane, u: r(), v: dir * (0.00012 + r() * 0.00008) * (900 / R.curve.getLength()), color: palette[(r() * palette.length) | 0], big: r() < 0.08 });
       }
     }
     this.body = new THREE.InstancedMesh(geo, M.carBody, this.cars.length);

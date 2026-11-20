@@ -1,0 +1,81 @@
+{
+  "frame": {
+    "units": "m",
+    "up": "+Y",
+    "front": "+Z",
+    "right": "+X",
+    "note": "Web/site frame. GLB xz is rotated -5 deg about GLB (-25, 0). Road widths are render estimates."
+  },
+  "boundary": {
+    "src": "GLB",
+    "apex": [-71.09, -94.36],
+    "frontLeft": [-71.04, 73.77],
+    "frontStraight": [[-71.04, 73.77], [-51.2, 75.65], [-6.5, 75.96]],
+    "arc": {
+      "c": [-1.53, -59.75],
+      "r": 134.46,
+      "from": [1.51, 74.65],
+      "to": [109.85, 15.28]
+    },
+    "backRight": [109.85, 15.28],
+    "backAngleDeg": 31.26
+  },
+  "wall": {
+    "src": "R-est",
+    "plinthH": 0.45,
+    "plinthW": 0.7,
+    "postPitch": 2.5,
+    "postH": 1.5,
+    "totalH": 1.9,
+    "railingInGlb": "podium.glb instanced the_wire (56) plus line panels, along the front straight and the arc",
+    "globesInGlb": "Helix instances (~23), about every 20 m. Not rebuilt."
+  },
+  "roads": {
+    "src": "R-est",
+    "footpath": 4,
+    "lane": 3.5,
+    "serviceW": 14,
+    "medianW": 5.2,
+    "palmPitch": 13,
+    "mainW": 14,
+    "sideW": 14,
+    "backW": 14,
+    "expressW": 22,
+    "nullahW": 18,
+    "serviceOffset": 11,
+    "medianOffset": 20.6,
+    "mainOffset": 30.2,
+    "backOffset": 12,
+    "expressOffset": 40,
+    "nullahOffset": 68,
+    "leftX": -109,
+    "leftZ0": -240,
+    "leftZ1": 230
+  },
+  "masjid": {
+    "src": "R-est",
+    "x": -88.1,
+    "z": 59.9,
+    "size": 20,
+    "rot": 0
+  },
+  "gate": {
+    "src": "GLB",
+    "x": -23.61,
+    "z": 74.34,
+    "apronW": 16,
+    "note": "Canopy, logo pylon and guard island are in podium.glb. Apron, hatch and booms are added."
+  },
+  "exit": {
+    "src": "R-est",
+    "along": 0.78,
+    "apronW": 11,
+    "note": "Secondary exit under the chevron pier, on the grid-B back road."
+  },
+  "cloverleaf": {
+    "src": "R-est",
+    "c": [-78, 128],
+    "loopR": [32, 44],
+    "fly": [[-240, 155], [-130, 140], [-60, 122], [30, 108], [140, 88]]
+  }
+}

@@ -168,7 +168,7 @@ async function build() {
     await realApi.firstPaint;
     setLoad(0.74, 'Roads, flyover, canal & neighbourhood');
     await frame();
-    buildContext(scene, M, foliage, { footprint: realApi.footprint });
+    buildContext(scene, M, foliage, { site: true });
     traffic = new Traffic(scene, M);
     setLoad(0.86, 'Landscaping');
     await frame();
