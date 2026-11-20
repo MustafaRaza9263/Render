@@ -307,9 +307,9 @@ export class Traffic {
     this.cars = [];
     const r = rng(55);
     const palette = ['#f4f4f4', '#d0d3d6', '#1d1f22', '#8a1b1b', '#2b4d7a', '#a8a9ad', '#ffffff', '#c9b18a', '#d9d9d9', '#3a3a3a'];
-    for (const k of ['main', 'exp', 'fly', 'side', 'ns', 'service', 'back', 'left']) {
+    for (const k of ['main', 'exp', 'fly', 'side', 'ns', 'service', 'back', 'left', 'nb']) {
       const R = ROADS[k]; if (!R) continue;
-      const n = { main: 70, exp: 70, fly: 34, side: 12, ns: 20, service: 36, back: 24, left: 16 }[k];
+      const n = { main: 70, exp: 50, fly: 28, side: 12, ns: 20, service: 36, back: 18, left: 16, nb: 40 }[k];
       for (let i = 0; i < n; i++) {
         const lane = R.lanes[(r() * R.lanes.length) | 0];
         const dir = R.oneWay ?? (lane > 0 ? 1 : -1);

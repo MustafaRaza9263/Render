@@ -1,4 +1,5 @@
 {
+  "backdrop": "render",
   "frame": {
     "units": "m",
     "up": "+Y",
@@ -54,8 +55,8 @@
   },
   "masjid": {
     "src": "R-est",
-    "x": -88.1,
-    "z": 59.9,
+    "x": -108,
+    "z": 60,
     "size": 20,
     "rot": 0
   },
@@ -68,7 +69,7 @@
   },
   "exit": {
     "src": "R-est",
-    "along": 0.78,
+    "along": 0.08,
     "apronW": 11,
     "note": "Secondary exit under the chevron pier, on the grid-B back road."
   },

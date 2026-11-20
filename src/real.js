@@ -32,7 +32,7 @@ const LOD_Y = 64;
 // lod1. Rear (~160–250 m), street and courtyard stay on lod0. site_far
 // replaces the compound once the camera leaves the neighbourhood.
 const LOD1_DISTANCE = 270;
-const FAR_DISTANCE = 900;
+const FAR_DISTANCE = 2400;
 
 const NO_CAST = new Set(['glass', 'balcony_glass_rail', 'water_pool', 'planter_green', 'solar']);
 
