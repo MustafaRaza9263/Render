@@ -184,3 +184,30 @@ export function createMaterials(maxAniso = 8) {
   M.T = { road, ground, paver, grass, stripes, waterN, fac1 };
   return M;
 }
+
+/** PBR set for the semantic materials baked into the exterior GLBs.
+ *  Glass / rails / water / gold follow the app's physical materials (env reflections).
+ *  The GLBs have no UVs, so textured maps (panel, solar cells) are not applied. */
+export function createRealMaterials(M) {
+  const std = (p) => new THREE.MeshStandardMaterial(p);
+  const phys = (p) => new THREE.MeshPhysicalMaterial(p);
+  const R = {};
+  R.facade_white = std({ name: 'facade_white', color: '#e6e1d8', roughness: 0.85, metalness: 0 });
+  R.facade_grey_panel = std({ name: 'facade_grey_panel', color: '#9a9590', roughness: 0.78, metalness: 0 });
+  R.concrete = std({ name: 'concrete', color: '#bdb8b0', roughness: 0.95, metalness: 0 });
+  R.louvre = std({ name: 'louvre', color: '#c8c6c1', roughness: 0.6, metalness: 0.2, side: THREE.DoubleSide });
+  R.metal_dark = std({ name: 'metal_dark', color: '#2d3033', roughness: 0.45, metalness: 0.6, side: THREE.DoubleSide, envMapIntensity: 0.9 });
+  R.planter_green = std({ name: 'planter_green', color: '#5a7548', roughness: 0.95 });
+  R.podium_court_green = std({ name: 'podium_court_green', color: '#4f8a3c', roughness: 0.9 });
+  R.podium_court_red = std({ name: 'podium_court_red', color: '#a8443a', roughness: 0.9 });
+  R.jogging_pink = std({ name: 'jogging_pink', color: '#c8746a', roughness: 0.95 });
+  R.solar = phys({ name: 'solar', color: '#1d2a3f', roughness: 0.2, metalness: 0.35, side: THREE.DoubleSide, envMapIntensity: 1.15 });
+  R.gold_logo = phys({ name: 'gold_logo', color: '#c9a227', roughness: 0.32, metalness: 1, envMapIntensity: 1.35 });
+  // Opaque physical glass, same idea as M.glass (env map, no transmission). The mesh already
+  // models the openings, so the procedural mullion shader would paint a second grid.
+  R.glass = phys({ name: 'glass', color: '#3e4954', roughness: 0.06, metalness: 0, ior: 1.5, specularIntensity: 1, envMapIntensity: 1.85, emissive: '#000000' });
+  R.balcony_glass_rail = phys({ name: 'balcony_glass_rail', color: '#8fa3ad', roughness: 0.05, metalness: 0.05, transparent: true, opacity: 0.62, envMapIntensity: 1.7, side: THREE.DoubleSide, depthWrite: false, specularIntensity: 1 });
+  R.water_pool = phys({ name: 'water_pool', color: '#2f8fb3', roughness: 0.07, metalness: 0, normalMap: M.water.normalMap, normalScale: new THREE.Vector2(0.35, 0.35), envMapIntensity: 1.25, emissive: '#1aa6d8', emissiveIntensity: 0.05, transparent: true, opacity: 0.92 });
+  M.real = R;
+  return R;
+}
