@@ -241,7 +241,8 @@ const VIEWS = {
   aerial: { pos: [-150, 250, 310], tgt: [16, 40, -6], fov: 34 },
   cam02: { pos: [78, 268, 236], tgt: [8, 32, 0], fov: 32 },
   rear: { pos: [28, 95, -200], tgt: [14, 40, -12], fov: 36 },
-  top: { pos: [20, 520, -6.2], tgt: [20, 0, -7], fov: 30 },
+  top: { pos: [30, 1580, 42], tgt: [30, 0, 40], fov: 34 },
+  interchange: { pos: [210, 2.6, 18], tgt: [150, 9, 110], fov: 52 },
   iso: { pos: [160, 360, 420], tgt: [16, 48, -8], fov: 26 },
   street: { pos: [16, 2.4, 158], tgt: [8, 26, 36], fov: 50 },
   courtyard: { pos: [-2, 32.2, 8], tgt: [6, 120, -20], fov: 72 },
@@ -291,6 +292,10 @@ function loop() {
   }
   controls.update(dt);
   if (camera.position.y < 1.2) camera.position.y = 1.2;
+  if (scene.fog && scene.fog.isFogExp2) {
+    const far = camera.position.distanceTo(focus);
+    scene.fog.density = MODES[mode].fogD * (far > 900 ? 0.22 : 1);
+  }
   if (realApi) realApi.update(camera);
   if (traffic && !SHOT) traffic.update(dt);
   renderer.info.reset();

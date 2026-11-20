@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Batch, rng } from './batch.js';
 import site from './data/site.json';
+import { buildRoadNetwork } from './roads.js';
 
 // Roads, boundary plinth, gate apron and masjid for the real compound.
 // The front railing and lamp globes already live in podium.glb (the_wire, Helix);
@@ -316,120 +317,29 @@ export function buildRealContext(scene, M, foliage) {
   ground.name = 'ground';
   scene.add(ground);
 
+  const net = buildRoadNetwork(b, foliage, r);
   const boundary = frontLine(0);
-  const foot = frontLine(R.footpath / 2);
-  const service = frontLine(R.serviceOffset);
-  const median = frontLine(R.medianOffset);
-  const main = frontLine(R.mainOffset);
-  ribbon(b, 'sidewalk', foot, R.footpath, 0.05);
-  ribbon(b, 'curb', service, R.serviceW + 0.8, 0.04);
-  ribbon(b, 'asphalt', service, R.serviceW, 0.07);
-  ribbon(b, 'curb', median, R.medianW + 0.5, 0.12);
-  ribbon(b, 'median', median, R.medianW, 0.18);
-  ribbon(b, 'curb', main, R.mainW + 0.8, 0.04);
-  ribbon(b, 'asphalt', main, R.mainW, 0.07);
-  // one-way 4-lane markings (the shared road texture is a 2+2 with a yellow centre)
-  for (const lat of [-5.25, -1.75, 1.75, 5.25]) {
-    dashes(b, service, lat, 9, 3.2, 0.14, 'laneWhite');
-    dashes(b, main, lat, 9, 3.2, 0.14, 'laneWhite');
-  }
-  edgeLine(b, service, R.serviceW / 2 - 0.4, 'laneYellow');
-  edgeLine(b, main, -R.mainW / 2 + 0.4, 'laneYellow');
-  for (let i = 4; i < median.length - 4; i += 2) {
-    const p = median[i];
-    if (p.x < -200 || p.x > 220) continue;
-    foliage.palm(p.x, 0.25, p.z, 6.5 + r() * 2.2, r());
-  }
-
-  const leftPts = [];
-  for (let z = R.leftZ0; z <= R.leftZ1; z += 18) leftPts.push(V3(R.leftX, z));
-  ribbon(b, 'curb', leftPts, R.sideW + 1.2, 0.04);
-  ribbon(b, 'sidewalk', leftPts, R.sideW + 8, 0.03);
-  ribbon(b, 'road', leftPts, R.sideW, 0.07);
-  zebra(b, R.leftX, site.masjid.z, 0, 1, R.sideW * 0.85, 7);
-
-  const backA = site.boundary.apex, backB = site.boundary.backRight;
-  const back = edgeOffset(backA, backB, R.backOffset, 180);
-  const backDense = curveOf(back).getSpacedPoints(80);
-  ribbon(b, 'curb', backDense, R.backW + 1.1, 0.04);
-  ribbon(b, 'sidewalk', backDense, R.backW + 7, 0.03);
-  ribbon(b, 'road', backDense, R.backW, 0.07);
-
-  const express = edgeOffset(backA, backB, R.expressOffset, 260);
-  const expDense = curveOf(express).getSpacedPoints(70);
-  ribbon(b, 'asphalt', expDense, R.expressW, 0.08);
-  ribbon(b, 'concrete', expDense, R.expressW + 1.4, 0.02);
-  for (const lat of [-7.5, -3.2, 3.2, 7.5]) dashes(b, expDense, lat, 14, 4, 0.16, 'laneWhite');
-
-  const nullah = edgeOffset(backA, backB, R.nullahOffset, 260);
-  const nullahPts = curveOf(nullah).getSpacedPoints(60);
-  ribbon(b, 'canalBed', nullahPts, R.nullahW + 10, -0.4);
-  ribbon(b, 'canalWater', nullahPts, R.nullahW, -0.15);
-  ribbon(b, 'concrete', nullahPts, 1.2, 0.5);
-
-  // low plinth under the GLB railing, and the left-edge wall the GLB does not carry
   frontPlinth(b, boundary);
   leftWall(b);
-
-  // cloverleaf in front-left, loops with the existing ring planting texture
-  const CL = site.cloverleaf.c;
-  for (const rad of site.cloverleaf.loopR) {
-    for (const [sx, sz] of [[-1, 0.2], [0.6, -0.4]]) {
-      const c = V3(CL[0] + sx * 52, CL[1] + sz * 36);
-      const ring = [];
-      for (let i = 0; i < 48; i++) {
-        const a = i / 48 * Math.PI * 2;
-        ring.push(V3(c.x + Math.cos(a) * rad, c.z + Math.sin(a) * rad * 0.82));
-      }
-      ribbon(b, 'asphalt', ring, 8, 0.1, { closed: true });
-      const disk = new THREE.CircleGeometry(rad * 0.62, 40);
-      disk.rotateX(-Math.PI / 2);
-      b.geom('stripes', disk, new THREE.Matrix4().makeTranslation(c.x, 0.12, c.z));
-    }
-  }
-  const flyPts = site.cloverleaf.fly.map(([x, z]) => V3(x, z));
-  const flyDense = curveOf(flyPts).getSpacedPoints(50);
-  const flyY = (i, n) => {
-    const t = i / (n - 1);
-    const h = 8.5;
-    if (t < 0.18) return THREE.MathUtils.smoothstep(t, 0, 0.18) * h;
-    if (t > 0.82) return (1 - THREE.MathUtils.smoothstep(t, 0.82, 1)) * h;
-    return h;
-  };
-  for (let i = 0; i < flyDense.length - 1; i++) {
-    const a = flyDense[i], c = flyDense[i + 1];
-    const ya = flyY(i, flyDense.length), yc = flyY(i + 1, flyDense.length);
-    const L = a.distanceTo(c), mid = a.clone().add(c).multiplyScalar(0.5);
-    const th = Math.atan2(-(c.z - a.z), c.x - a.x);
-    const ym = (ya + yc) / 2;
-    b.box('concrete', mid.x, ym - 0.45, mid.z, L + 0.4, 0.9, 15, th);
-    b.box('asphalt', mid.x, ym + 0.08, mid.z, L + 0.2, 0.1, 13.5, th);
-    if (i % 4 === 0 && ym > 3) b.box('concrete', mid.x, ym / 2 - 0.5, mid.z, 1.8, ym - 1, 1.8, th);
-  }
-
   buildMasjid(b, foliage, r);
   buildGate(b);
-  buildExit(b, backA, backB);
+  const b1 = net.byId.B1_back_road;
+  if (b1) buildExit(b, [b1[0].x, b1[0].z], [b1[b1.length - 1].x, b1[b1.length - 1].z]);
+  if (net.byId.C1_collector) zebra(b, site.gate.x, site.gate.z + 8, 1, 0, 12, 6);
+  if (net.byId.R1_left_road) zebra(b, site.masjid.x - 16, site.masjid.z, 0, 1, 12, 6);
 
   const poly = plotPolygon();
-  const corridors = [
-    [service, R.serviceW / 2 + 6], [main, R.mainW / 2 + 6], [median, 6],
-    [leftPts, R.sideW / 2 + 8], [backDense, R.backW / 2 + 8],
-    [expDense, R.expressW / 2 + 8], [nullahPts, R.nullahW / 2 + 10], [flyDense, 14],
-  ];
   const free = (x, z, rad) => {
     if (inside(x, z, poly)) return false;
-    if (Math.hypot(x - site.masjid.x, z - site.masjid.z) < site.masjid.size * 0.7 + rad) return false;
-    if (Math.hypot(x - CL[0], z - CL[1]) < 120) return false;
-    for (const [pts, w] of corridors) if (distToPolyline(x, z, pts) < w + rad) return false;
+    if (Math.hypot(x - site.masjid.x, z - site.masjid.z) < site.masjid.size * 0.75 + rad) return false;
+    for (const [pts, w] of net.corridors) if (distToPolyline(x, z, pts) < w + rad) return false;
     return true;
   };
   filler(b, foliage, r, free);
-
-  const lampPts = lampsAlong(b, main, R.mainW / 2 + 3, 3);
-  lampsAlong(b, service, -(R.serviceW / 2 + 2.5), 4);
-  lampsAlong(b, backDense, R.backW / 2 + 3, 2);
-  lampsAlong(b, leftPts, R.sideW / 2 + 3, 2);
+  const lampPts = [];
+  if (net.byId.C1_collector) lampPts.push(...lampsAlong(b, net.byId.C1_collector, 9, 4));
+  if (net.byId.B1_back_road) lampsAlong(b, net.byId.B1_back_road, 9, 3);
+  if (net.byId.R1_left_road) lampsAlong(b, net.byId.R1_left_road, 9, 4);
   if (lampPts.length && !M.lampPool) {
     const c = document.createElement('canvas'); c.width = c.height = 64;
     const x = c.getContext('2d');
@@ -445,15 +355,7 @@ export function buildRealContext(scene, M, foliage) {
   b.build(group, M, { cast: false, receive: true });
   scene.add(group);
 
-  const pack = (pts, width, lanes, oneWay = 0) => ({
-    curve: curveOf(pts), width, y: () => 0.2, lanes, oneWay: oneWay || undefined,
-  });
-  return {
-    service: pack(service, R.serviceW, [-5.25, -1.75, 1.75, 5.25], 1),
-    main: pack(main, R.mainW, [-5.25, -1.75, 1.75, 5.25], -1),
-    left: pack(leftPts, R.sideW, [-5.2, -1.7, 1.7, 5.2]),
-    back: pack(backDense, R.backW, [-5.2, -1.7, 1.7, 5.2]),
-    exp: pack(expDense, R.expressW, [-8, -3.5, 3.5, 8]),
-    fly: { curve: curveOf(flyDense), width: 14, y: (t) => flyY(Math.round(t * (flyDense.length - 1)), flyDense.length) + 0.3, lanes: [-4, -1.4, 1.4, 4] },
-  };
+  const traffic = {};
+  for (const [k, v] of Object.entries(net.traffic)) if (v) traffic[k] = v;
+  return traffic;
 }
