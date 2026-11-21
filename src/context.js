@@ -68,9 +68,9 @@ function distToPolyline(x, z, pts) {
   return Math.sqrt(best);
 }
 
-export function buildContext(scene, M, foliage, opts = {}) {
+export async function buildContext(scene, M, foliage, opts = {}) {
   if (opts.site) {
-    const roads = buildRealContext(scene, M, foliage);
+    const roads = await buildRealContext(scene, M, foliage);
     for (const k of Object.keys(ROADS)) delete ROADS[k];
     Object.assign(ROADS, roads);
     return { lamps: [] };

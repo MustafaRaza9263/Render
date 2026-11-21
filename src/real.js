@@ -57,6 +57,7 @@ function dress(root, lib) {
     obj.material = Array.isArray(obj.material) ? obj.material.map(swap) : swap(obj.material);
     const matName = (Array.isArray(obj.material) ? obj.material[0] : obj.material)?.name || '';
     const proxy = (obj.name || '').startsWith('inst|') || (obj.name || '').startsWith('vegetation');
+    if ((obj.name || '').startsWith('vegetation')) obj.visible = false;
     obj.castShadow = !proxy && !NO_CAST.has(matName);
     obj.receiveShadow = matName !== 'balcony_glass_rail';
   });

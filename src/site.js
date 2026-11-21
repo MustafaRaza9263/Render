@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { Batch, rng } from './batch.js';
 import site from './data/site.json';
 import { buildRoadNetwork } from './roads.js';
+import { buildProps } from './props.js';
 
 // Roads, boundary plinth, gate apron and masjid for the real compound.
 // The front railing and lamp globes already live in podium.glb (the_wire, Helix);
@@ -308,7 +309,7 @@ function filler(b, foliage, r, free) {
 }
 
 /** Build the render-matched site. Returns road records for the traffic sim. */
-export function buildRealContext(scene, M, foliage) {
+export async function buildRealContext(scene, M, foliage) {
   const b = new Batch();
   const r = rng(7);
   const R = site.roads;
@@ -338,8 +339,10 @@ export function buildRealContext(scene, M, foliage) {
   filler(b, foliage, r, free);
   const lampPts = [];
   if (net.byId.C1_collector) lampPts.push(...lampsAlong(b, net.byId.C1_collector, 9, 4));
+  if (net.byId.C2_shahrah_sb) lampsAlong(b, net.byId.C2_shahrah_sb, 10, 5);
   if (net.byId.B1_back_road) lampsAlong(b, net.byId.B1_back_road, 9, 3);
   if (net.byId.R1_left_road) lampsAlong(b, net.byId.R1_left_road, 9, 4);
+  await buildProps(scene, M).catch((err) => console.warn('props', err));
   if (lampPts.length && !M.lampPool) {
     const c = document.createElement('canvas'); c.width = c.height = 64;
     const x = c.getContext('2d');
