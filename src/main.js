@@ -4,7 +4,8 @@ import { createSky, applySky, SKY_PRESETS } from './sky.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { Effect, EffectComposer, RenderPass, EffectPass, BloomEffect, SMAAEffect, ToneMappingEffect, ToneMappingMode, VignetteEffect } from 'postprocessing';
 import { N8AOPostPass } from 'n8ao';
-import { createMaterials, createRealMaterials, U } from './materials.js';
+import { HDRLoader } from 'three/examples/jsm/loaders/HDRLoader.js';
+import { createMaterials, createRealMaterials, loadPlasterMaps, U } from './materials.js';
 import { TOWERS, Y_TOP, Y_POD } from './layout.js';
 import { buildTower } from './tower.js';
 import { buildBridges, buildPeople } from './bridges.js';
@@ -16,6 +17,7 @@ import { Foliage } from './vegetation.js';
 const params = new URLSearchParams(location.search);
 const SHOT = params.has('shot');
 const PROCEDURAL = params.get('procedural') === '1';
+const Q = params.get('q') === 'low' ? 'low' : (params.get('q') === 'high' || SHOT) ? 'high' : 'med';
 const $ = (s) => document.querySelector(s);
 const setLoad = (p, msg) => { $('#bar-fill').style.width = (p * 100) + '%'; $('#load-msg').textContent = msg; };
 const frame = () => new Promise(r => requestAnimationFrame(() => r()));
@@ -49,7 +51,7 @@ controls.autoRotateSpeed = 0.35;
 // ---------------- lights ----------------
 const sun = new THREE.DirectionalLight('#fff4e5', 3.2);
 sun.castShadow = true;
-const SM = +(params.get('sm') || 4096); sun.shadow.mapSize.set(SM, SM);
+const SM = +(params.get('sm') || (Q === 'low' ? 1024 : Q === 'high' ? 4096 : 2048)); sun.shadow.mapSize.set(SM, SM);
 const sc = sun.shadow.camera; sc.left = -135; sc.right = 135; sc.top = 135; sc.bottom = -135; sc.near = 10; sc.far = 900;
 if (!PROCEDURAL) { sc.left = sc.bottom = -200; sc.right = sc.top = 200; }
 sc.updateProjectionMatrix();
@@ -72,24 +74,68 @@ for (let i = 0; i < 24; i++) {
   m.position.set(Math.cos(a) * 2000, 20, Math.sin(a) * 2000); m.lookAt(0, 20, 0); glowCards.add(m);
 }
 let envRT = null;
+let hdriEnv = null;
 function setSky(name, sunDir) {
   applySky(sky, SKY_PRESETS[name], sunDir);
   applySky(envSky, { ...SKY_PRESETS[name], disc: Math.min(SKY_PRESETS[name].disc, 3) }, sunDir);
   glowCards.visible = name === 'night';
+  if (name === 'day' && hdriEnv) {
+    scene.environment = hdriEnv;
+    scene.background = null;
+    return;
+  }
   if (envRT) envRT.dispose();
   envRT = pmrem.fromScene(envScene, 0, 1, 5000);
   scene.environment = envRT.texture;
   scene.background = null;
 }
 
+/** Afternoon sun at Karachi (24.94N, 67.09E), 14:00 PKT on 15 Nov.
+ *  Elevation is about 40°, close to the 43° sun in the clear-sky HDRI.
+ *  Azimuth is degrees clockwise from true north. Web north is (-0.565, 0.825). */
+function karachiAfternoon() {
+  const lat = 24.94 * Math.PI / 180, lon = 67.09, tz = 5, doy = 319, hour = 14;
+  const g = 2 * Math.PI / 365 * (doy - 1);
+  const decl = 0.006918 - 0.399912 * Math.cos(g) + 0.070257 * Math.sin(g) - 0.006758 * Math.cos(2 * g) + 0.000907 * Math.sin(2 * g) - 0.002697 * Math.cos(3 * g) + 0.00148 * Math.sin(3 * g);
+  const eq = 229.18 * (0.000075 + 0.001868 * Math.cos(g) - 0.032077 * Math.sin(g) - 0.014615 * Math.cos(2 * g) - 0.040849 * Math.sin(2 * g));
+  const ha = ((hour * 60 + eq + 4 * lon - tz * 60) / 4 - 180) * Math.PI / 180;
+  const cosphi = Math.sin(lat) * Math.sin(decl) + Math.cos(lat) * Math.cos(decl) * Math.cos(ha);
+  const phi = Math.acos(Math.min(1, Math.max(-1, cosphi)));
+  let az = Math.acos(Math.min(1, Math.max(-1, (Math.sin(lat) * cosphi - Math.sin(decl)) / (Math.cos(lat) * Math.sin(phi) + 1e-9))));
+  if (ha > 0) az = 2 * Math.PI - az;
+  const el = Math.PI / 2 - phi;
+  const nx = -0.5651, nz = 0.825, ex = -nz, ez = nx;
+  const c = Math.cos(el), s = Math.sin(el);
+  const dir = new THREE.Vector3(nx * Math.cos(az) + ex * Math.sin(az), s, nz * Math.cos(az) + ez * Math.sin(az)).normalize();
+  return { dir, elev: THREE.MathUtils.radToDeg(Math.asin(dir.y)), az: THREE.MathUtils.radToDeg(Math.atan2(dir.x, dir.z)) };
+}
+const DAY_SUN = karachiAfternoon();
+
+function alignHdri(tex) {
+  const img = tex.image;
+  const { data, width, height } = img;
+  if (!data || !width) return 0;
+  let max = 0, u = 0.5, v = 0.5;
+  const step = 4;
+  for (let y = 0; y < height; y += step) for (let x = 0; x < width; x += step) {
+    const i = (y * width + x) * 4;
+    const lum = data[i] + data[i + 1] + data[i + 2];
+    if (lum > max) { max = lum; u = x / width; v = y / height; }
+  }
+  // Equirectangular: u 0.5 looks down -Z in three.js, v 0 is +Y.
+  const hdrAz = (u - 0.5) * Math.PI * 2;
+  const want = Math.atan2(DAY_SUN.dir.x, DAY_SUN.dir.z);
+  return want - hdrAz;
+}
+
 // ---------------- post ----------------
 const composer = new EffectComposer(renderer, { frameBufferType: THREE.HalfFloatType });
 composer.addPass(new RenderPass(scene, camera));
 const n8 = new N8AOPostPass(scene, camera, W(), H());
-Object.assign(n8.configuration, { aoRadius: 4.0, distanceFalloff: 1.2, intensity: 2.2, gammaCorrection: false, halfRes: !SHOT, aoSamples: SHOT ? 24 : 12, denoiseSamples: 8, color: new THREE.Color('#000000') });
-if (params.get('ao') !== '0') composer.addPass(n8);
+Object.assign(n8.configuration, { aoRadius: 4.0, distanceFalloff: 1.2, intensity: Q === 'high' ? 1.6 : 1.25, gammaCorrection: false, halfRes: Q !== 'high', aoSamples: Q === 'high' ? 16 : 8, denoiseSamples: Q === 'high' ? 8 : 4, color: new THREE.Color('#000000') });
+if (params.get('ao') !== '0' && Q !== 'low') composer.addPass(n8);
 const bloom = new BloomEffect({ mipmapBlur: true, luminanceThreshold: 1.0, luminanceSmoothing: 0.2, intensity: 0.5, radius: 0.72 });
-const tone = new ToneMappingEffect({ mode: ToneMappingMode.ACES_FILMIC });
+const tone = new ToneMappingEffect({ mode: ToneMappingMode.AGX, whitePoint: 4.2 });
 const vignette = new VignetteEffect({ darkness: 0.35, offset: 0.3 });
 class ClampEffect extends Effect {
   constructor() { super('Clamp', `void mainImage(const in vec4 inputColor, const in vec2 uv, out vec4 outputColor){ vec3 c = inputColor.rgb; if (any(isnan(c)) || any(isinf(c))) c = vec3(0.0); outputColor = vec4(min(c, vec3(64.0)), inputColor.a); }`); }
@@ -109,7 +155,7 @@ class GradeEffect extends Effect {
   }
 }
 const grade = new GradeEffect();
-const FX = params.get('fx') || 'bloom,vig,smaa';
+const FX = params.get('fx') || (Q === 'low' ? 'vig' : 'bloom,vig,smaa');
 const fxList = [];
 if (FX.includes('bloom')) fxList.push(bloom);
 fxList.push(tone, grade);
@@ -162,7 +208,8 @@ async function build() {
       addLabel(t.name, t.x + sx * t.w * 0.25, Y_POD + (Y_TOP - Y_POD) * hf, t.z + t.d / 2 + 0.5, side);
     }
   } else {
-    createRealMaterials(M);
+    const plaster = await loadPlasterMaps().catch((err) => { console.warn('plaster maps', err); return null; });
+    createRealMaterials(M, plaster);
     const { loadRealCompound } = await import('./real.js');
     realApi = loadRealCompound(scene, M, { onProgress: (t, msg) => setLoad(0.1 + t * 0.62, msg) });
     await realApi.firstPaint;
@@ -183,10 +230,12 @@ async function build() {
 
 // ---------------- presets ----------------
 const MODES = {
-  day: { elev: 36, az: 318, turb: 8, ray: 0.65, sun: '#ffeed6', sunI: 2.4, hemiI: 0.06, night: 0, fog: '#c6c7c3', fogD: 0.0006, grade: [1.03, 0.99, 0.93, 0.95, 1.12], env: 1.0, bgI: 2.6, skyK: 0.032, bloom: 0.25, thr: 1.4 },
+  day: { elev: 40, az: 0, turb: 4, ray: 0.4, sun: '#fff6e8', sunI: 3.4, hemiI: 0.16, night: 0, fog: '#d8d9d4', fogD: 0.00028, grade: [1.04, 1.01, 0.96, 0.94, 1.12], env: 0.7, bgI: 2.0, skyK: 0.026, bloom: 0.15, thr: 1.55 },
   dusk: { elev: 5, az: 292, turb: 9, ray: 2.2, sun: '#ffb27a', sunI: 2.0, hemiI: 0.1, night: 0.65, fog: '#8f8590', fogD: 0.00065, grade: [1.06, 0.99, 0.92, 1.0, 1.05], env: 0.45, bgI: 2.2, skyK: 0.1, bloom: 0.6, thr: 1.0 },
   night: { elev: -10, az: 300, turb: 2, ray: 1, sun: '#8fa8ff', sunI: 0.12, hemiI: 0.04, night: 1, fog: '#141824', fogD: 0.0008, grade: [1.0, 0.98, 0.97, 1.0, 1.04], env: 0.35, bgI: 1.0, bloom: 1.05, thr: 0.85 },
 };
+MODES.day.elev = DAY_SUN.elev;
+MODES.day.az = DAY_SUN.az;
 let mode = 'day';
 const focus = PROCEDURAL ? new THREE.Vector3(0, 40, 0) : new THREE.Vector3(16, 45, -6);
 function applyMode(name) {
@@ -316,6 +365,15 @@ function loop() {
 
 (async () => {
   await build();
+  if (Q !== 'low') {
+    try {
+      const tex = await new HDRLoader().setDataType(THREE.FloatType).loadAsync(`${import.meta.env.BASE_URL}textures/kloofendal_43d_clear_puresky_1k.hdr`);
+      scene.environmentRotation.y = alignHdri(tex);
+      const rt = pmrem.fromEquirectangular(tex);
+      tex.dispose();
+      hdriEnv = rt.texture;
+    } catch (err) { console.warn('hdri', err); }
+  }
   applyMode(params.get('mode') || 'day');
   goView(params.get('view') || 'aerial', true);
   setLabels(labelsOn);
