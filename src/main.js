@@ -195,7 +195,7 @@ async function build() {
     buildPodium(scene, M, foliage);
     setLoad(0.72, 'Roads, flyover, canal & neighbourhood');
     await frame();
-    buildContext(scene, M, foliage);
+    await buildContext(scene, M, foliage);
     traffic = new Traffic(scene, M);
     setLoad(0.85, 'Landscaping');
     await frame();
@@ -215,7 +215,7 @@ async function build() {
     await realApi.firstPaint;
     setLoad(0.74, 'Roads, flyover, canal & neighbourhood');
     await frame();
-    buildContext(scene, M, foliage, { site: true });
+    await buildContext(scene, M, foliage, { site: true });
     traffic = new Traffic(scene, M);
     setLoad(0.86, 'Landscaping');
     await frame();
@@ -346,7 +346,7 @@ function loop() {
     scene.fog.density = MODES[mode].fogD * (far > 900 ? 0.22 : 1);
   }
   if (realApi) realApi.update(camera);
-  if (traffic && !SHOT) traffic.update(dt);
+  if (traffic && !SHOT && params.get('traffic') !== '0') traffic.update(dt);
   renderer.info.reset();
   renderer.info.autoReset = false;
   if (params.get('post') === '0') { renderer.toneMapping = THREE.AgXToneMapping; renderer.render(scene, camera); } else composer.render(dt);
