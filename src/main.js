@@ -13,6 +13,7 @@ import { buildRoofs } from './roof.js';
 import { buildPodium } from './podium.js';
 import { buildContext, Traffic } from './context.js';
 import { Foliage } from './vegetation.js';
+import './sheet.js';
 
 const params = new URLSearchParams(location.search);
 const SHOT = params.has('shot');

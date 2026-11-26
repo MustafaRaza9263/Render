@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" href="./favicon.ico" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>The Seven — Seven Towers · Interactive 3D</title>
   <link rel="stylesheet" href="./src/style.css" />
 </head>
@@ -15,27 +15,62 @@
     <div id="load-msg">Preparing scene…</div>
   </div>
   <div id="ui" class="hidden">
-    <div class="title"><span class="g">7</span> THE SEVEN <small>35 floors · 7 towers · The Connect @ 20F</small></div>
-    <div class="group" id="views">
-      <button data-view="aerial" class="on">Aerial</button>
-      <button data-view="cam02">Bird's eye</button>
-      <button data-view="rear">Rear</button>
-      <button data-view="top">Top</button>
-      <button data-view="iso">Isometric</button>
-      <button data-view="street">Street level</button>
-      <button data-view="courtyard">Courtyard look-up</button>
-      <button data-view="bridge">Skybridge</button>
+    <div class="mobile-top">
+      <button type="button" class="pill" id="pill" aria-haspopup="dialog" aria-expanded="false" aria-controls="sheet">
+        <span class="g" aria-hidden="true">7</span>
+        <span class="pill-copy">
+          <span class="pill-name">THE SEVEN</span>
+          <span class="pill-view" id="pill-view">Aerial</span>
+        </span>
+      </button>
+      <button type="button" class="fab" id="btn-controls" aria-label="Controls" aria-haspopup="dialog" aria-expanded="false" aria-controls="sheet">
+        <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+          <path d="M4 7.5h16M4 16.5h16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+          <circle cx="9" cy="7.5" r="2.15" fill="none" stroke="currentColor" stroke-width="1.7"/>
+          <circle cx="15" cy="16.5" r="2.15" fill="none" stroke="currentColor" stroke-width="1.7"/>
+        </svg>
+      </button>
     </div>
-    <div class="group" id="modes">
-      <button data-mode="day" class="on">Day</button>
-      <button data-mode="dusk">Dusk</button>
-      <button data-mode="night">Night</button>
+    <div id="sheet-backdrop"></div>
+    <div id="sheet">
+      <div class="sheet-head">
+        <div class="grabber-hit" id="sheet-grabber" aria-hidden="true">
+          <span class="grabber"></span>
+        </div>
+        <button type="button" class="sheet-close" id="sheet-close" aria-label="Close">
+          <svg viewBox="0 0 24 24" width="30" height="30" aria-hidden="true">
+            <path d="M8 8l8 8M16 8l-8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="title" id="sheet-title"><span class="g">7</span> THE SEVEN <small>35 floors · 7 towers · The Connect @ 20F</small></div>
+        <div class="sheet-label time">Time</div>
+        <div class="group" id="modes" role="group" aria-label="Time of day">
+          <span class="seg-thumb" aria-hidden="true"></span>
+          <button data-mode="day" class="on">Day</button>
+          <button data-mode="dusk">Dusk</button>
+          <button data-mode="night">Night</button>
+        </div>
+        <div class="sheet-label view">View</div>
+        <div class="group" id="views" role="group" aria-label="Camera view">
+          <button data-view="aerial" class="on">Aerial</button>
+          <button data-view="cam02">Bird's eye</button>
+          <button data-view="rear">Rear</button>
+          <button data-view="top">Top</button>
+          <button data-view="iso">Isometric</button>
+          <button data-view="street">Street level</button>
+          <button data-view="courtyard">Courtyard look-up</button>
+          <button data-view="bridge">Skybridge</button>
+        </div>
+        <div class="sheet-label display">Display</div>
+        <div class="group toggles" role="group" aria-label="Display">
+          <button id="btn-labels">Labels</button>
+          <button id="btn-orbit">Auto-orbit</button>
+        </div>
+        <div id="stats"></div>
+      </div>
     </div>
-    <div class="group">
-      <button id="btn-labels">Labels</button>
-      <button id="btn-orbit">Auto-orbit</button>
-    </div>
-    <div id="stats"></div>
   </div>
   <script type="module" src="./src/main.js"></script>
 </body>
